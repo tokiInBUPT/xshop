@@ -1,0 +1,20 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${command:cmake.getLaunchTargetDirectory}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "visualizerFile": "c:\\Users\\xytoki\\AppData\\Roaming\\Code\\User\\workspaceStorage\\ef5c8fc6e50341b3596477d7c6e24957\\tonka3000.qtvsctools\\qt.natvis.xml"
+        }
+    ]
+}
