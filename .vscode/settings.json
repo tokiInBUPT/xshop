@@ -67,7 +67,9 @@
         "xlocbuf": "cpp",
         "xlocmes": "cpp",
         "xlocmon": "cpp",
-        "xloctime": "cpp"
+        "xloctime": "cpp",
+        "qjsonparseerror": "cpp",
+        "qstring": "cpp"
     },
     "terminal.integrated.automationShell.windows": "C:\\Windows\\system32\\cmd.exe"
 }

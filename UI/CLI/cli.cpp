@@ -36,6 +36,8 @@ bool CLI::mainMenu() {
             cout << "3. 新商品" << endl;
             cout << "4. 设置折扣" << endl;
         }
+        cout << "6. 购物车" << endl;
+        cout << "7. 我的订单" << endl;
         cout << "8. 修改密码" << endl;
         cout << "9. 退出登录" << endl;
     }
@@ -63,6 +65,12 @@ bool CLI::mainMenu() {
         break;
     case 2: // User-2: recharge
         this->recharge();
+        break;
+    case 6: // User-6: cart
+        this->cart();
+        break;
+    case 7: // User-7: order
+        this->listOrder();
         break;
     case 8: // User-8: passwd
         this->passwd();
@@ -96,119 +104,6 @@ bool CLI::mainMenu() {
         this->alert("错误输入");
     }
     return true;
-}
-void CLI::reg() {
-    cout << "是否要注册商家账户？如是请按Y，否请按N >> ";
-    char ch;
-    User *user = NULL;
-    bool loop = true;
-    while (loop && (ch = _getch())) {
-        switch (ch) {
-        case 3: // Ctrl+C
-            exit(0);
-            break;
-        case 'y':
-        case 'Y':
-            user = new UserMerchant;
-            loop = false;
-            cout << "Y";
-            break;
-        case 'n':
-        case 'N':
-            user = new UserConsumer;
-            loop = false;
-            cout << "N";
-        default:
-            // Continue loop
-            break;
-        }
-    }
-    cout << endl;
-    cout << "账号 >> ";
-    cin >> user->username;
-    std::cout << "密码 >> ";
-    string password = this->passwordInput();
-    user->setPassword(password);
-    if (DataManager::getInstance()->user->reg(user)) {
-        this->alert("注册成功");
-    } else {
-        this->alert("系统错误");
-    }
-    delete user;
-}
-void CLI::login() {
-    string username;
-    cout << "账号 >> ";
-    cin >> username;
-    std::cout << "密码 >> ";
-    string password = this->passwordInput();
-    if (DataManager::getInstance()->user->login(username, password)) {
-        this->alert("登录成功");
-    } else {
-        this->alert("用户名或密码错误");
-    }
-}
-void CLI::passwd() {
-    std::cout << "请输入新密码 >> ";
-    string password = this->passwordInput();
-    if (DataManager::getInstance()->user->changePassword(password)) {
-        this->alert("密码已修改");
-    } else {
-        this->alert("系统错误");
-    }
-}
-void CLI::setDiscount() {
-    UserMerchant *currentUser = (UserMerchant *)DataManager::getInstance()->user->currentUser;
-    cout << "请设置 书籍 分类折扣(%) >>";
-    string d = this->to_string(currentUser->discount[0] * 100, 2);
-    this->editorInput(&d);
-    try {
-        if (!DataManager::getInstance()->user->setDiscount(BOOK, stof(d) / 100)) {
-            this->alert("设置失败！");
-            return;
-        }
-    } catch (...) {
-        this->alert("输入有误");
-        return;
-    }
-
-    cout << "请设置 食品 分类折扣(%) >>";
-    d = this->to_string(currentUser->discount[1] * 100, 2);
-    this->editorInput(&d);
-    try {
-        if (!DataManager::getInstance()->user->setDiscount(FOOD, stof(d) / 100)) {
-            this->alert("设置失败！");
-            return;
-        }
-    } catch (...) {
-        this->alert("输入有误");
-        return;
-    }
-
-    cout << "请设置 衣物 分类折扣(%) >>";
-    d = this->to_string(currentUser->discount[2] * 100, 2);
-    this->editorInput(&d);
-    try {
-        if (!DataManager::getInstance()->user->setDiscount(CLOTH, stof(d) / 100)) {
-            this->alert("设置失败！");
-            return;
-        }
-    } catch (...) {
-        this->alert("输入有误");
-        return;
-    }
-    this->alert("保存成功");
-}
-void CLI::recharge() {
-    std::cout << "请输入充值金额，如：648.00 >> ";
-    float f;
-    cin >> f;
-    int i = (int)(f * 100);
-    if (DataManager::getInstance()->user->addFund(i)) {
-        this->alert("充值成功");
-    } else {
-        this->alert("系统错误");
-    }
 }
 void CLI::list() {
     bool loop = true;
@@ -290,25 +185,181 @@ void CLI::list() {
         }
     }
 }
-void CLI::print(Product *p) {
-    string cName = "未知";
-    switch (p->getProductType()) {
-    case BOOK:
-        cName = "书籍";
-        break;
-    case FOOD:
-        cName = "食品";
-        break;
-    case CLOTH:
-        cName = "衣物";
-        break;
+void CLI::cart() {
+    bool loop = true;
+    while (loop) {
+        system("cls");
+        if (DataManager::getInstance()->user->currentUser->cart.size() <= 0) {
+            this->alert("购物车空");
+            return;
+        } else {
+            for (int i = 0; i < DataManager::getInstance()->user->currentUser->cart.size(); i++) {
+                USERCART item = DataManager::getInstance()->user->currentUser->cart[i];
+                Product *p = DataManager::getInstance()->product->getProductById(item.id);
+                if (p == NULL) {
+                    // 购物车商品不存在
+                    continue;
+                }
+                this->printCart(p, item.quantity);
+                delete p;
+            }
+            cout << "请输入编号选择需要修改的商品，或[q]返回上级，[b]结算，并回车确认 >> ";
+
+            string op;
+            cin >> op;
+            try {
+                int seq = stoi(op);
+                if (seq > DataManager::getInstance()->user->currentUser->cart.size()) {
+                    this->alert("错误输入");
+                } else {
+                    this->editCart(DataManager::getInstance()->user->currentUser->cart[seq - 1]);
+                }
+            } catch (...) {
+                if (op == "q") {
+                    return;
+                } else if (op == "b") {
+                    if (this->checkout()) {
+                        return;
+                    }
+                } else {
+                    this->alert("错误输入");
+                }
+            }
+        }
     }
-    cout << "商品详情："
-         << "[" << cName << "] ";
-    cout << p->name << endl;
-    cout << "库存：" << p->stock;
-    cout << "\t原价：" << (float)(p->pricing) / 100.0 << "\t折后：" << (float)p->getRealPrice() / 100.0 << endl;
-    cout << p->description << endl;
+}
+void CLI::editCart(USERCART item) {
+    system("cls");
+    Product *p = DataManager::getInstance()->product->getProductById(item.id);
+    this->printCart(p, item.quantity);
+    int stock = p->stock;
+    delete p;
+    cout << "请在此修改商品数量（0为删除）>> ";
+    string input = this->to_string(item.quantity, 0);
+    this->editorInput(&input);
+    try {
+        int quantity = stoi(input);
+        if (stock < quantity) {
+            return this->alert("该商品库存不足");
+        }
+        quantity = DataManager::getInstance()->user->setToCart(item.id, quantity);
+        if (quantity > 0) {
+            this->alert("设置成功");
+        } else {
+            this->alert("删除成功");
+        }
+    } catch (...) {
+        this->alert("输入有误，数量未改变");
+    }
+}
+bool CLI::checkout() {
+    string msg = "";
+    string orderId = DataManager::getInstance()->order->checkout(&msg);
+    if (orderId.length() <= 0) {
+        this->alert(msg);
+        return false;
+    }
+    this->payOrCancel(orderId);
+    return true;
+}
+void CLI::listOrder() {
+    while (1) {
+        map<string, ORDER> orders = DataManager::getInstance()->order->list();
+        User *currentUser = DataManager::getInstance()->user->currentUser;
+        map<int, string> displayOrdersMap;
+        int i = 0;
+        for (auto kv : orders) {
+            if (kv.second.user != currentUser->username || kv.second.status != ORDER_PENDING) {
+                continue;
+            }
+            i++;
+            displayOrdersMap.insert_or_assign(i, kv.second.id);
+            cout << i << ". [未支付]" << ((float)kv.second.pricing) / 100 << "元" << endl;
+        }
+        if (i == 0) {
+            this->alert("没有未支付订单");
+            return;
+        }
+        cout << "请输入编号选择订单，或 [q]返回上级，并回车确认 >> ";
+        string op;
+        cin >> op;
+        try {
+            int seq = stoi(op);
+            auto it = displayOrdersMap.find(seq);
+            if (it == displayOrdersMap.end()) {
+                this->alert("错误输入");
+            } else {
+                this->showOrder(it->second);
+            }
+        } catch (...) {
+            if (op == "q") {
+                return;
+            } else {
+                this->alert("错误输入");
+            }
+        }
+    }
+}
+void CLI::showOrder(string orderId) {
+    system("cls");
+    ORDER order = DataManager::getInstance()->order->getById(orderId);
+    for (int i = 0; i < order.cart.size(); i++) {
+        USERCART item = order.cart[i];
+        Product *p = DataManager::getInstance()->product->getProductById(item.id);
+        if (p == NULL) {
+            // 购物车商品不存在
+            this->alert("有商品已被删除，该订单将将自动取消");
+            DataManager::getInstance()->order->cancel(orderId);
+            return;
+        }
+        auto it = order.itemPrice.find(item.id);
+        int price = 0;
+        if (it == order.itemPrice.end()) {
+            continue;
+        } else {
+            price = it->second;
+        }
+        this->printOrder(p, item.quantity, price);
+        delete p;
+    }
+    this->payOrCancel(orderId);
+}
+void CLI::payOrCancel(string orderId) {
+    ORDER order = DataManager::getInstance()->order->getById(orderId);
+    User *currentUser = DataManager::getInstance()->user->currentUser;
+    while (1) {
+        cout << "结算：" << endl
+             << "您当前余额为 ";
+        cout << ((float)currentUser->balance) / 100 << "元" << endl;
+        cout << "需要支付：" << ((float)order.pricing) / 100 << "元" << endl;
+        cout << endl;
+        if (order.pricing > currentUser->balance) {
+            cout << "余额不足，您可以 [r] 充值 [c]取消 [q]返回 >> ";
+        } else {
+            cout << "您可以 [b] 支付 [c]取消 [q]返回 >> ";
+        }
+        char ch = _getch();
+        switch (ch) {
+        case 'b':
+            if (order.pricing <= currentUser->balance) {
+                DataManager::getInstance()->order->pay(orderId);
+                this->alert("订单支付成功");
+                return;
+            }
+            break;
+        case 'r':
+            cout << endl;
+            this->recharge();
+            break;
+        case 'c':
+            DataManager::getInstance()->order->cancel(orderId);
+            this->alert("订单取消成功");
+            return;
+        case 'q':
+            return;
+        }
+        system("cls");
+    }
 }
 void CLI::show(Product *pn) {
     Product *p = DataManager::getInstance()->product->getProductById(pn->id);
@@ -321,7 +372,7 @@ void CLI::show(Product *pn) {
         this->print(p);
         cout << endl;
         if (currentUser != NULL) {
-            cout << "[b]购买 ";
+            cout << "[b]加入购物车 ";
             if (currentUser->getUserType() == MERCHANT && p->owner == currentUser->username) {
                 isowner = true;
                 cout << "[e]编辑 ";
@@ -337,7 +388,13 @@ void CLI::show(Product *pn) {
             delete p;
             return;
         } else if (currentUser != NULL && op == 'b') {
-            this->buy(p);
+            int originalCount = DataManager::getInstance()->user->getInCart(p->id);
+            if (p->stock >= originalCount + 1) {
+                DataManager::getInstance()->user->addToCart(p->id, 1);
+                this->alert("添加购物车成功");
+            } else {
+                this->alert("库存不足");
+            }
             delete p;
             return;
         } else if (isowner && op == 'e') {
@@ -490,93 +547,4 @@ void CLI::addOrEdit(Product *p) {
             this->alert("错误输入");
         }
     }
-}
-/*
- * 可编辑的输入框函数
- */
-void CLI::editorInput(string *s) {
-    bool isCtrl = false;
-    // 先输出原内容
-    cout << *s;
-    // 为了处理中文的退格问题，这里直接使用wstring
-    wstring ws = wstring_convert<codecvt_utf8<wchar_t>>().from_bytes(*s);
-    wchar_t ch;
-    while ((ch = _getwch()) != 13) {
-        switch (ch) {
-        case '\b':
-            isCtrl = false;
-            if (ws.length() > 0) {
-                wchar_t c = ws.at(ws.length() - 1);
-                ws.pop_back();
-                putchar('\b');
-                putchar(' ');
-                putchar('\b');
-                if (c > 127) {
-                    // 中文在是3byte，但是退格只需要退两格
-                    putchar('\b');
-                    putchar(' ');
-                    putchar('\b');
-                }
-            }
-            break;
-        case 3: // Ctrl+C
-            exit(0);
-            break;
-        case 0:
-            isCtrl = true;
-            break;
-        default:
-            if (isCtrl) {
-                // 00 xx 一般是方向键，这里直接丢弃
-                isCtrl = false;
-                break;
-            }
-            isCtrl = false;
-            ws += ch;
-            // wcout可能不输出，所以转为string再输出
-            string sch = wstring_convert<codecvt_utf8<wchar_t>, wchar_t>().to_bytes(ch);
-            cout << sch;
-        }
-    }
-    // 返回string
-    *s = wstring_convert<codecvt_utf8<wchar_t>, wchar_t>().to_bytes(ws);
-    cout << endl;
-}
-
-string CLI::passwordInput() {
-    string password;
-    char ch;
-    while ((ch = _getch()) != 13) {
-        switch (ch) {
-        case '\b':
-            if (password.length() > 0) {
-                password.pop_back();
-                putchar('\b');
-                putchar(' ');
-                putchar('\b');
-            }
-            break;
-        case 3: // Ctrl+C
-            exit(0);
-            break;
-        default:
-            password += ch;
-            std::cout << '*';
-        }
-    }
-    cout << endl;
-    return password;
-}
-
-void CLI::alert(string s) {
-    cout << endl;
-    cout << "[提示] " << s << "，按任意键继续" << endl;
-    cout << endl;
-    _getch();
-}
-string CLI::to_string(const double val, const int n) {
-    ostringstream out;
-    out.precision(n);
-    out << std::fixed << val;
-    return out.str();
 }

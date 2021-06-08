@@ -18,10 +18,13 @@ namespace Backend {
         bool logout();
         bool addFund(int amount);
         bool useFund(int amount);
+        bool addFundToUser(string username,int amount);
         bool changePassword(string password);
         bool setDiscount(PRODUCTTYPE type,float discount);
-        bool addToCart(string id,int count);
-        bool setToCart(string id,int count);
+        int UserManager::getInCart(string id);
+        int addToCart(string id,int count);
+        int setToCart(string id,int count);
+        bool emptyCart();
         User* getUserByName(string username) const;
 
     private:

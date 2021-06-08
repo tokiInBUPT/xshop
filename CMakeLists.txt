@@ -33,7 +33,9 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Sql REQUIRED)
 set(PROJECT_SOURCES
         main.cpp
 
-
+        UI/CLI/print.cpp
+        UI/CLI/utils.cpp
+        UI/CLI/user.cpp
         UI/CLI/cli.cpp
         UI/CLI/cli.h
 

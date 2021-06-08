@@ -70,6 +70,14 @@ namespace Backend {
             user->username = obj["username"].toString().toStdString();
             user->passwordHash = obj["passwordHash"].toString().toStdString();
             user->balance = obj["balance"].toInt();
+            QJsonArray cart = obj["cart"].toArray();
+            for (auto c : cart) {
+                QJsonObject cartObj = c.toObject();
+                USERCART userCart;
+                userCart.id = cartObj["id"].toString().toStdString();
+                userCart.quantity = cartObj["quantity"].toInt();
+                user->cart.push_back(userCart);
+            }
             this->userList.insert(pair<string, User *>(user->username, user));
         }
     }
@@ -94,6 +102,14 @@ namespace Backend {
                 }
                 obj["discount"] = discount;
             }
+            QJsonArray cart;
+            for (auto c : v->cart) {
+                QJsonObject cartObj;
+                cartObj["id"] = QJsonValue(QString::fromStdString(c.id));
+                cartObj["quantity"] = QJsonValue(c.quantity);
+                cart.push_back(cartObj);
+            }
+            obj["cart"] = cart;
             jsonArray.push_back(obj);
         }
         string strData = QJsonDocument(jsonArray).toJson().toStdString();
@@ -199,6 +215,18 @@ namespace Backend {
         return true;
     }
     /*
+     * 增加余额
+     */
+    bool UserManager::addFundToUser(string username, int amount) {
+        User *user = this->_getUserByName(username);
+        if (user == NULL) {
+            return false;
+        }
+        user->balance += amount;
+        this->save();
+        return true;
+    }
+    /*
      * 减少余额
      */
     bool UserManager::useFund(int amount) {
@@ -229,16 +257,28 @@ namespace Backend {
         return true;
     }
     /*
+     * 在购物车查找商品
+     */
+    int UserManager::getInCart(string id) {
+        for (auto i : this->currentUser->cart) {
+            if (i.id == id) {
+                return i.quantity;
+            }
+        }
+        return 0;
+    }
+    /*
      * 加购物车
      */
-    bool UserManager::addToCart(string id, int quantity) {
+    int UserManager::addToCart(string id, int quantity) {
         bool found = false;
         int c = 0;
-        for (auto i : this->currentUser->cart) {
-            if (i.id == id) {
+        for (int i = 0; i < this->currentUser->cart.size(); i++) {
+            if (this->currentUser->cart[i].id == id) {
                 found = true;
-                i.quantity += quantity;
-                if (i.quantity == 0) {
+                this->currentUser->cart[i].quantity += quantity;
+                quantity = this->currentUser->cart[i].quantity;
+                if (this->currentUser->cart[i].quantity == 0) {
                     this->currentUser->cart.erase(begin(this->currentUser->cart) + c);
                 }
             }
@@ -250,16 +290,17 @@ namespace Backend {
             item.quantity = quantity;
             this->currentUser->cart.push_back(item);
         }
-        return true;
+        this->save();
+        return quantity;
     }
-    bool UserManager::setToCart(string id, int quantity) {
+    int UserManager::setToCart(string id, int quantity) {
         bool found = false;
         int c = 0;
-        for (auto i : this->currentUser->cart) {
-            if (i.id == id) {
+        for (int i = 0; i < this->currentUser->cart.size(); i++) {
+            if (this->currentUser->cart[i].id == id) {
                 found = true;
-                i.quantity = quantity;
-                if (i.quantity == 0) {
+                this->currentUser->cart[i].quantity = quantity;
+                if (this->currentUser->cart[i].quantity == 0) {
                     this->currentUser->cart.erase(begin(this->currentUser->cart) + c);
                 }
             }
@@ -271,6 +312,11 @@ namespace Backend {
             item.quantity = quantity;
             this->currentUser->cart.push_back(item);
         }
+        this->save();
+        return quantity;
+    }
+    bool UserManager::emptyCart() {
+        this->currentUser->cart.swap(vector<USERCART>());
         this->save();
         return true;
     }

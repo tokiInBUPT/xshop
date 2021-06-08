@@ -114,7 +114,7 @@ namespace Backend {
      */
     bool ProductManager::decAmount(Product *product, int amount) {
         Product *p = this->_getProductById(product->id);
-        if (p == NULL || p->stock < amount) {
+        if (p == NULL || (amount > 0 && p->stock < amount)) {
             return false;
         }
         p->stock -= amount;
@@ -201,7 +201,7 @@ namespace Backend {
         }
         Product *origProduct = this->getProductById(product->id);
         /* 不能修改不存在的的商品 */
-        if(origProduct==NULL){
+        if (origProduct == NULL) {
             return false;
         }
         /* 不能修改别人的商品 */
