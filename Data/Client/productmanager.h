@@ -1,17 +1,18 @@
-#ifndef B_PRODUCTMANAGER_H
-#define B_PRODUCTMANAGER_H
+#ifndef C_PRODUCTMANAGER_H
+#define C_PRODUCTMANAGER_H
 #include "../../Common/Product/productbook.h"
 #include "../../Common/Product/productcloth.h"
 #include "../../Common/Product/productfood.h"
 #include "../Common/productmanager.h"
+#include "httpclient.h"
 #include <map>
 #include <string>
 using namespace std;
 
-namespace Backend {
+namespace Client {
     class ProductManager : Common::ProductManager {
     public:
-        ProductManager(string productFile);
+        ProductManager(xHttpClient* client);
         ~ProductManager();
         map<string, Product *> listProduct();
         Product *getProductById(string id) const;
@@ -20,15 +21,13 @@ namespace Backend {
         bool deleteProduct(Product *product);
         bool decAmount(Product *product, int amount);
         int getPrice(const Product *product) const;
+        void load();
 
     private:
-        string productFile;
+        xHttpClient* client;
         map<string, Product *> productList;
-        void load();
-        void save();
         Product *copy(Product *product) const;
-        bool addOrReplace(Product *product);
         Product *_getProductById(string id) const;
     };
 }
-#endif // B_PRODUCTMANAGER_H
+#endif // C_PRODUCTMANAGER_H

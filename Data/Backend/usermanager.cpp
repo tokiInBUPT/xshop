@@ -197,6 +197,17 @@ namespace Backend {
         return true;
     }
     /*
+     * 设置当前
+     */
+    bool UserManager::setCurrentUser(string username) {
+        User *foundUser = this->_getUserByName(username);
+        if (foundUser == NULL) {
+            return false;
+        }
+        this->currentUser = foundUser;
+        return true;
+    }
+    /*
      * 退出登录
      */
     bool UserManager::logout() {
@@ -319,5 +330,8 @@ namespace Backend {
         this->currentUser->cart.swap(vector<USERCART>());
         this->save();
         return true;
+    }
+    map<string, User *> UserManager::list() const {
+        return this->userList;
     }
 };

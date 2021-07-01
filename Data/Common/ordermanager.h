@@ -1,7 +1,7 @@
 #ifndef ORDERMANAGER_H
 #define ORDERMANAGER_H
-#include "../Common/user.h"
-#include "../Common/product.h"
+#include "../../Common/user.h"
+#include "../../Common/product.h"
 #include <map>
 #include <vector>
 typedef enum {

@@ -17,6 +17,7 @@ typedef struct USERCART {
 class User {
 public:
     User();
+    ~User();
     /* 用户名 */
     string username;
     /* 密码(MD5) */

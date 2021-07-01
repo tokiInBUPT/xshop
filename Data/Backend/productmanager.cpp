@@ -106,7 +106,7 @@ namespace Backend {
         }
         s.close();
     }
-    map<string, Product *> ProductManager::listProduct() const {
+    map<string, Product *> ProductManager::listProduct() {
         return this->productList;
     }
     /* 

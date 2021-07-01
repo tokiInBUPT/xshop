@@ -7,6 +7,9 @@
 #include "Backend/ordermanager.h"
 #include "Backend/productmanager.h"
 #include "Backend/usermanager.h"
+#include "Client/usermanager.h"
+#include "Client/productmanager.h"
+#include "Client/ordermanager.h"
 #include "Common/ordermanager.h"
 #include "Common/productmanager.h"
 #include "Common/usermanager.h"
@@ -22,18 +25,23 @@ typedef enum MGRTYPE {
 
 class DataManager {
 private:
-    DataManager(){};
+    DataManager(){
+        this->user = NULL;
+        this->order = NULL;
+        this->product = NULL;
+    };
     DataManager(const DataManager &);
     DataManager &operator=(const DataManager &);
     ~DataManager() {
-        delete this->user;
-        delete this->order;
-        delete this->product;
+        if(this->user)delete this->user;
+        if(this->order)delete this->order;
+        if(this->product)delete this->product;
     };
     static void Destory(DataManager *p) {
         delete p;
     };
     static shared_ptr<DataManager> instance;
+    xHttpClient client;
 
 public:
     MGRTYPE type = UNDEFINED;
@@ -63,6 +71,10 @@ public:
         if (type != UNDEFINED) {
             return false;
         }
+        this->client.base = serverAddr;
+        this->user = (UserManager *)new Client::UserManager(&this->client);
+        this->order = (OrderManager *)new Client::OrderManager(&this->client);
+        this->product = (ProductManager *)new Client::ProductManager(&this->client);
         return true;
     }
 };

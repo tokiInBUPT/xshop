@@ -1,17 +1,17 @@
-#ifndef B_USERMANAGER_H
-#define B_USERMANAGER_H
+#ifndef C_USERMANAGER_H
+#define C_USERMANAGER_H
 #include "../../Common/userconsumer.h"
 #include "../../Common/usermerchant.h"
 #include "../Common/usermanager.h"
+#include "httpclient.h"
 #include <map>
 #include <string>
 #include <vector>
 using namespace std;
-namespace Backend {
-
+namespace Client {
     class UserManager : Common::UserManager {
     public:
-        UserManager(string userFile);
+        UserManager(xHttpClient* client);
         ~UserManager();
         bool reg(User *user);
         bool login(string username, string password);
@@ -26,15 +26,13 @@ namespace Backend {
         int setToCart(string id,int count);
         bool emptyCart();
         User* getUserByName(string username) const;
-        bool setCurrentUser(string username);
-        map<string, User *> list() const;
-
+        void load();
+        void loadCurrentUser();
     private:
-        string userFile;
+        xHttpClient* client;
         map<string, User *> userList;
         User *_getUserByName(string username) const;
-        void save();
-        void load();
+        void saveCart();
     };
 };
-#endif // USERMANAGER_H
+#endif

@@ -27,8 +27,8 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 #    endif()
 #endif()
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Sql REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Sql REQUIRED)
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets Sql Network REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Sql Network REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -39,9 +39,8 @@ set(PROJECT_SOURCES
         UI/CLI/cli.cpp
         UI/CLI/cli.h
 
-        UI/GUI/mainwindow.cpp
-        UI/GUI/mainwindow.h
-        UI/GUI/mainwindow.ui
+        UI/Server/Server.cpp UI/Server/Server.h
+        UI/Server/Handler.cpp UI/Server/Handler.h
 
         Common/user.h Common/user.cpp
         Common/userconsumer.h Common/userconsumer.cpp
@@ -52,6 +51,8 @@ set(PROJECT_SOURCES
         Common/Product/productfood.h Common/Product/productfood.cpp
         Common/Product/productcloth.h Common/Product/productcloth.cpp
 
+        Common/Protocol/http.cpp Common/Protocol/http.h
+
         Data/DataManager.h
         
         Data/Common/usermanager.h
@@ -61,6 +62,11 @@ set(PROJECT_SOURCES
         Data/Backend/usermanager.h Data/Backend/usermanager.cpp
         Data/Backend/productmanager.h Data/Backend/productmanager.cpp
         Data/Backend/ordermanager.h Data/Backend/ordermanager.cpp
+
+        Data/Client/httpclient.h Data/Client/httpclient.cpp
+        Data/Client/usermanager.h Data/Client/usermanager.cpp
+        Data/Client/productmanager.h Data/Client/productmanager.cpp
+        Data/Client/ordermanager.h Data/Client/ordermanager.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -80,7 +86,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(xshop PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql)
+target_link_libraries(xshop PRIVATE ws2_32 Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Network)
 
 set_target_properties(xshop PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

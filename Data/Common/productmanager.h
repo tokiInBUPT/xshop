@@ -1,7 +1,7 @@
 #ifndef PRODUCTMANAGER_H
 #define PRODUCTMANAGER_H
 #include <map>
-#include "../Common/product.h"
+#include "../../Common/product.h"
 using namespace std;
 namespace Common
 {
@@ -15,7 +15,7 @@ namespace Common
         /*
          * 列出商品列表，返回Map
          */
-        virtual map<string,Product*> listProduct() const = 0;
+        virtual map<string,Product*> listProduct() = 0;
         /*
          * 获取单个商品
          */
